@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f1923">
+<title>Mis Finanzas</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f1923; --surface: #19252f; --surface2: #1e2e3a;
+    --entrada: #00e5a0; --entrada-dim: #00e5a015;
+    --gasto: #ff5f7e;  --gasto-dim: #ff5f7e15;
+    --text: #e8f0f5; --text-muted: #6b8fa3; --border: #263545;
+    --mono: 'DM Mono', monospace; --sans: 'Sora', sans-serif; --radius: 16px;
+  }
+  html,body { height:100%; background:var(--bg); color:var(--text); font-family:var(--sans); overflow-x:hidden; -webkit-tap-highlight-color:transparent; }
+
+  .screen { display:none; flex-direction:column; min-height:100vh; padding:0 0 80px; animation:fadeIn .25s ease; }
+  .screen.active { display:flex; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  .header { padding:52px 24px 20px; background:linear-gradient(180deg,#0d1820 0%,transparent 100%); position:sticky; top:0; z-index:10; }
+  .header-row { display:flex; align-items:center; justify-content:space-between; }
+  .app-title { font-size:13px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--text-muted); }
+  .header-date { font-family:var(--mono); font-size:12px; color:var(--text-muted); }
+
+  .drive-badge { display:flex; align-items:center; gap:6px; font-size:11px; font-weight:600; padding:5px 10px; border-radius:100px; border:1px solid var(--border); cursor:pointer; transition:all .2s; margin:0 20px 16px; }
+  .drive-badge.connected    { border-color:#00e5a040; background:#00e5a010; color:var(--entrada); }
+  .drive-badge.disconnected { border-color:var(--border); color:var(--text-muted); }
+  .drive-badge.syncing      { border-color:#4a90d940; background:#4a90d910; color:#7ab8e8; }
+  .drive-dot { width:7px; height:7px; border-radius:50%; background:currentColor; }
+  .drive-dot.pulse { animation:pulse 1.2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  .balance-card { margin:8px 20px 24px; padding:28px 24px; background:var(--surface); border-radius:var(--radius); border:1px solid var(--border); position:relative; overflow:hidden; }
+  .balance-card::before { content:''; position:absolute; top:-40px; right:-40px; width:160px; height:160px; background:radial-gradient(circle,#00e5a020 0%,transparent 70%); border-radius:50%; }
+  .balance-label { font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px; }
+  .balance-amount { font-family:var(--mono); font-size:38px; font-weight:500; letter-spacing:-.02em; }
+  .balance-amount.negative { color:var(--gasto); }
+  .balance-amount.positive { color:var(--entrada); }
+  .balance-sub { display:flex; gap:24px; margin-top:16px; padding-top:16px; border-top:1px solid var(--border); }
+  .balance-sub-item { display:flex; flex-direction:column; gap:3px; }
+  .balance-sub-label { font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); }
+  .balance-sub-value { font-family:var(--mono); font-size:16px; font-weight:500; }
+
+  .action-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:0 20px 24px; }
+  .btn-action { padding:20px 16px; border:none; border-radius:var(--radius); font-family:var(--sans); font-size:15px; font-weight:600; cursor:pointer; display:flex; flex-direction:column; align-items:flex-start; gap:6px; transition:transform .15s; }
+  .btn-action:active { transform:scale(.96); }
+  .btn-action .btn-icon { font-size:26px; }
+  .btn-action.entrada { background:var(--entrada); color:#0a1a12; }
+  .btn-action.gasto   { background:var(--gasto);   color:#1a0a10; }
+  .btn-action .btn-sub { font-size:11px; font-weight:400; opacity:.7; }
+
+  .section-title { font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted); padding:0 20px 12px; }
+
+  .tx-list { display:flex; flex-direction:column; gap:8px; padding:0 20px; }
+  .tx-item { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 16px; display:flex; align-items:center; gap:12px; animation:fadeIn .2s ease; }
+  .tx-dot { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+  .tx-dot.entrada { background:var(--entrada-dim); }
+  .tx-dot.gasto   { background:var(--gasto-dim); }
+  .tx-info { flex:1; min-width:0; }
+  .tx-cat    { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tx-detail { font-size:11px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px; }
+  .tx-right  { text-align:right; flex-shrink:0; }
+  .tx-amount { font-family:var(--mono); font-size:15px; font-weight:500; }
+  .tx-amount.entrada { color:var(--entrada); }
+  .tx-amount.gasto   { color:var(--gasto); }
+  .tx-date   { font-size:10px; color:var(--text-muted); margin-top:2px; font-family:var(--mono); }
+  .delete-btn { background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:16px; padding:4px 8px; border-radius:6px; margin-left:auto; }
+  .delete-btn:active { color:var(--gasto); }
+
+  .empty-state { text-align:center; padding:48px 20px; color:var(--text-muted); }
+  .empty-state .empty-icon { font-size:40px; margin-bottom:12px; }
+  .empty-state p { font-size:14px; line-height:1.5; }
+
+  .form-header { padding:52px 24px 24px; display:flex; align-items:center; gap:16px; }
+  .btn-back { width:40px; height:40px; border-radius:12px; background:var(--surface); border:1px solid var(--border); color:var(--text); font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .form-title { font-size:22px; font-weight:700; }
+  .form-title span.entrada { color:var(--entrada); }
+  .form-title span.gasto   { color:var(--gasto); }
+  .form-body { padding:0 20px; display:flex; flex-direction:column; gap:16px; }
+
+  .field-group { display:flex; flex-direction:column; gap:8px; }
+  .field-label { font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted); }
+  .field-select, .field-input { background:var(--surface); border:1.5px solid var(--border); border-radius:12px; color:var(--text); font-family:var(--sans); font-size:16px; padding:14px 16px; width:100%; outline:none; transition:border-color .2s; -webkit-appearance:none; appearance:none; }
+  .field-select:focus, .field-input:focus { border-color:var(--entrada); }
+  .field-select.gasto-mode:focus { border-color:var(--gasto); }
+  .field-select option { background:var(--surface2); }
+  .monto-wrapper { position:relative; }
+  .monto-prefix { position:absolute; left:16px; top:50%; transform:translateY(-50%); font-family:var(--mono); font-size:18px; color:var(--text-muted); pointer-events:none; }
+  .monto-wrapper .field-input { padding-left:32px; font-family:var(--mono); font-size:22px; font-weight:500; }
+
+  .btn-submit { margin-top:8px; padding:18px; border:none; border-radius:var(--radius); font-family:var(--sans); font-size:16px; font-weight:700; cursor:pointer; width:100%; transition:transform .15s; }
+  .btn-submit:active { transform:scale(.97); }
+  .btn-submit.entrada { background:var(--entrada); color:#0a1a12; }
+  .btn-submit.gasto   { background:var(--gasto);   color:#1a0a10; }
+
+  .mes-selector { display:flex; align-items:center; gap:12px; padding:0 20px 16px; }
+  .mes-btn { background:var(--surface); border:1px solid var(--border); color:var(--text); width:32px; height:32px; border-radius:8px; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .mes-label { font-family:var(--mono); font-size:14px; font-weight:500; flex:1; text-align:center; }
+
+  .resumen-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:0 20px 20px; }
+  .resumen-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; }
+  .resumen-card.full { grid-column:1 / -1; }
+  .resumen-card-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--text-muted); margin-bottom:6px; }
+  .resumen-card-value { font-family:var(--mono); font-size:22px; font-weight:500; }
+  .resumen-card-value.entrada { color:var(--entrada); }
+  .resumen-card-value.gasto   { color:var(--gasto); }
+
+  .config-section { padding:16px 20px 0; }
+  .config-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; margin-bottom:16px; }
+  .config-card-title { font-size:13px; font-weight:700; margin-bottom:4px; }
+  .config-card-desc  { font-size:12px; color:var(--text-muted); line-height:1.5; margin-bottom:14px; }
+  .btn-config { padding:12px 16px; border:none; border-radius:10px; font-family:var(--sans); font-size:13px; font-weight:600; cursor:pointer; width:100%; transition:transform .15s; }
+  .btn-config:active { transform:scale(.97); }
+  .btn-config.primary { background:var(--entrada); color:#0a1a12; }
+  .btn-config.danger  { background:var(--gasto-dim); border:1px solid var(--gasto); color:var(--gasto); }
+  .btn-config.neutral { background:var(--surface2); border:1px solid var(--border); color:var(--text); }
+  .btn-config+.btn-config { margin-top:8px; }
+
+  .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:var(--surface); border-top:1px solid var(--border); display:flex; z-index:100; }
+  .nav-btn { flex:1; padding:12px 8px 20px; display:flex; flex-direction:column; align-items:center; gap:4px; background:none; border:none; cursor:pointer; color:var(--text-muted); font-family:var(--sans); font-size:10px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; transition:color .2s; }
+  .nav-btn.active { color:var(--entrada); }
+  .nav-btn .nav-icon { font-size:20px; }
+
+  .toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:12px 20px; border-radius:100px; font-size:13px; font-weight:600; opacity:0; transition:all .3s; pointer-events:none; white-space:nowrap; z-index:200; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .setup-overlay { position:fixed; inset:0; background:var(--bg); z-index:999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px; text-align:center; }
+  .setup-overlay.hidden { display:none; }
+  .setup-logo { font-size:56px; margin-bottom:20px; }
+  .setup-title { font-size:24px; font-weight:700; margin-bottom:8px; }
+  .setup-desc  { font-size:14px; color:var(--text-muted); line-height:1.6; margin-bottom:32px; }
+  .setup-input { background:var(--surface); border:1.5px solid var(--border); border-radius:12px; color:var(--text); font-family:var(--mono); font-size:13px; padding:14px 16px; width:100%; outline:none; margin-bottom:12px; }
+  .setup-input:focus { border-color:var(--entrada); }
+  .setup-hint { font-size:11px; color:var(--text-muted); margin-bottom:20px; line-height:1.5; }
+  .btn-setup-primary { padding:16px; border:none; border-radius:var(--radius); background:var(--entrada); color:#0a1a12; font-family:var(--sans); font-size:15px; font-weight:700; cursor:pointer; width:100%; margin-bottom:10px; }
+  .btn-setup-secondary { padding:14px; border:1px solid var(--border); border-radius:var(--radius); background:none; color:var(--text-muted); font-family:var(--sans); font-size:13px; cursor:pointer; width:100%; }
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div class="setup-overlay" id="setup-overlay">
+  <div class="setup-logo">☁️</div>
+  <div class="setup-title">Mis Finanzas</div>
+  <div class="setup-desc">Para guardar tus datos en Google Drive de forma segura, necesitamos configurar el acceso una sola vez.</div>
+  <input class="setup-input" id="setup-client-id" type="text" placeholder="Pegá aquí el Google Client ID">
+  <div class="setup-hint">Tu técnico te va a dar este código. Solo se configura una vez y tus datos quedan protegidos en tu Google Drive personal.</div>
+  <button class="btn-setup-primary" onclick="guardarClientId()">Guardar y conectar</button>
+  <button class="btn-setup-secondary" onclick="usarSinDrive()">Usar sin Drive (solo en este celu)</button>
+</div>
+
+<!-- HOME -->
+<div class="screen active" id="screen-home">
+  <div class="header">
+    <div class="header-row">
+      <span class="app-title">Mis Finanzas</span>
+      <span class="header-date" id="header-date"></span>
+    </div>
+  </div>
+  <div id="drive-badge-home" class="drive-badge disconnected" onclick="navegar('config')">
+    <span class="drive-dot" id="drive-dot-home"></span>
+    <span id="drive-status-text">Drive: no conectado</span>
+  </div>
+  <div class="balance-card">
+    <div class="balance-label">Saldo del mes</div>
+    <div class="balance-amount" id="saldo-home">$ 0</div>
+    <div class="balance-sub">
+      <div class="balance-sub-item">
+        <span class="balance-sub-label">↑ Entradas</span>
+        <span class="balance-sub-value" style="color:var(--entrada)" id="total-entradas-home">$ 0</span>
+      </div>
+      <div class="balance-sub-item">
+        <span class="balance-sub-label">↓ Gastos</span>
+        <span class="balance-sub-value" style="color:var(--gasto)" id="total-gastos-home">$ 0</span>
+      </div>
+    </div>
+  </div>
+  <div class="action-row">
+    <button class="btn-action entrada" onclick="abrirForm('entrada')">
+      <span class="btn-icon">💰</span><span>Entrada</span><span class="btn-sub">Ingreso de dinero</span>
+    </button>
+    <button class="btn-action gasto" onclick="abrirForm('gasto')">
+      <span class="btn-icon">💸</span><span>Gasto</span><span class="btn-sub">Salida de dinero</span>
+    </button>
+  </div>
+  <div class="section-title">Últimos movimientos</div>
+  <div class="tx-list" id="lista-home"></div>
+</div>
+
+<!-- FORM -->
+<div class="screen" id="screen-form">
+  <div class="form-header">
+    <button class="btn-back" onclick="volverHome()">←</button>
+    <div class="form-title" id="form-title"></div>
+  </div>
+  <div class="form-body">
+    <div class="field-group">
+      <label class="field-label">Categoría</label>
+      <select class="field-select" id="form-cat"><option value="">— Elegí una categoría —</option></select>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Detalle (opcional)</label>
+      <input class="field-input" id="form-detalle" type="text" placeholder="ej: sesión con Juan, Día" maxlength="60">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Monto</label>
+      <div class="monto-wrapper">
+        <span class="monto-prefix">$</span>
+        <input class="field-input" id="form-monto" type="number" inputmode="numeric" placeholder="0">
+      </div>
+    </div>
+    <button class="btn-submit" id="btn-submit-form" onclick="guardarMovimiento()">Guardar</button>
+  </div>
+</div>
+
+<!-- HISTORIAL -->
+<div class="screen" id="screen-historial">
+  <div class="header"><div class="header-row"><span class="app-title">Historial</span></div></div>
+  <div class="mes-selector">
+    <button class="mes-btn" onclick="cambiarMes(-1)">‹</button>
+    <span class="mes-label" id="mes-label"></span>
+    <button class="mes-btn" onclick="cambiarMes(1)">›</button>
+  </div>
+  <div class="tx-list" id="lista-historial"></div>
+</div>
+
+<!-- RESUMEN -->
+<div class="screen" id="screen-resumen">
+  <div class="header"><div class="header-row"><span class="app-title">Resumen</span></div></div>
+  <div class="mes-selector">
+    <button class="mes-btn" onclick="cambiarMesResumen(-1)">‹</button>
+    <span class="mes-label" id="mes-label-resumen"></span>
+    <button class="mes-btn" onclick="cambiarMesResumen(1)">›</button>
+  </div>
+  <div class="resumen-grid" id="resumen-grid"></div>
+  <div class="section-title" style="padding-top:8px">Por categoría</div>
+  <div class="tx-list" id="lista-resumen-cats"></div>
+</div>
+
+<!-- CONFIG -->
+<div class="screen" id="screen-config">
+  <div class="header"><div class="header-row"><span class="app-title">Configuración</span></div></div>
+  <div class="config-section">
+    <div class="config-card">
+      <div class="config-card-title">☁️ Google Drive</div>
+      <div class="config-card-desc" id="drive-config-desc">Conectá tu Drive para que los datos se guarden automáticamente en la nube.</div>
+      <button class="btn-config primary" id="btn-drive-connect" onclick="conectarDrive()">Conectar con Google Drive</button>
+      <button class="btn-config danger"  id="btn-drive-disconnect" onclick="desconectarDrive()" style="display:none">Desconectar Drive</button>
+      <button class="btn-config neutral" id="btn-drive-sync" onclick="sincronizarDrive()" style="display:none">🔄 Sincronizar ahora</button>
+    </div>
+    <div class="config-card">
+      <div class="config-card-title">📤 Exportar datos</div>
+      <div class="config-card-desc">Descargá un archivo de respaldo con todos tus movimientos.</div>
+      <button class="btn-config neutral" onclick="exportarJSON()">Exportar archivo de respaldo</button>
+    </div>
+    <div class="config-card">
+      <div class="config-card-title">📥 Importar datos</div>
+      <div class="config-card-desc">Recuperá tus datos desde un archivo de respaldo anterior.</div>
+      <button class="btn-config neutral" onclick="document.getElementById('import-input').click()">Importar archivo</button>
+      <input type="file" id="import-input" accept=".json" style="display:none" onchange="importarJSON(event)">
+    </div>
+    <div class="config-card">
+      <div class="config-card-title">🔑 Client ID de Google</div>
+      <div class="config-card-desc">Si necesitás cambiar el Client ID configurado por tu técnico.</div>
+      <button class="btn-config neutral" onclick="mostrarCambioClientId()">Cambiar Client ID</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="bottom-nav" id="main-nav">
+  <button class="nav-btn active" onclick="navegar('home')"      id="nav-home">     <span class="nav-icon">🏠</span>Inicio</button>
+  <button class="nav-btn"        onclick="navegar('historial')" id="nav-historial"> <span class="nav-icon">📋</span>Historial</button>
+  <button class="nav-btn"        onclick="navegar('resumen')"   id="nav-resumen">   <span class="nav-icon">📊</span>Resumen</button>
+  <button class="nav-btn"        onclick="navegar('config')"    id="nav-config">    <span class="nav-icon">⚙️</span>Config</button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+const DEFAULT_CLIENT_ID = ''; // ← PEGAR ACÁ: TU_CLIENT_ID.apps.googleusercontent.com
+const SCOPES    = 'https://www.googleapis.com/auth/drive.appdata';
+const FILE_NAME = 'finanzas_backup.json';
+const CATS_ENTRADA = ['Sesiones de psicología','Otros ingresos'];
+const CATS_GASTO   = ['Supermercado','Servicios (luz, gas, etc.)','Farmacia / Salud','Transporte','Otros gastos'];
+
+let tipoActual='entrada', mesVisto=new Date(), mesVistaResumen=new Date();
+let tokenClient=null, accessToken=null, driveFileId=null, sincronizando=false;
+
+function getData()       { try{return JSON.parse(localStorage.getItem('finanzas_movs')||'[]')}catch{return[]} }
+function saveData(d)     { localStorage.setItem('finanzas_movs',JSON.stringify(d)); }
+function getClientId()   { return localStorage.getItem('finanzas_client_id')||DEFAULT_CLIENT_ID; }
+function saveClientId(v) { localStorage.setItem('finanzas_client_id',v); }
+function getDriveToken() { return localStorage.getItem('finanzas_drive_token')||null; }
+function saveDriveToken(t){ t?localStorage.setItem('finanzas_drive_token',t):localStorage.removeItem('finanzas_drive_token'); }
+
+function fmt(n){ return '$ '+Math.abs(n).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function fmtFecha(iso){ return new Date(iso).toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'2-digit'}); }
+function mesKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function mesNombre(d){ return d.toLocaleDateString('es-AR',{month:'long',year:'numeric'}); }
+
+window.onload=()=>{
+  document.getElementById('header-date').textContent=new Date().toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'});
+  const clientId=getClientId();
+  const yaOk=localStorage.getItem('finanzas_setup_done');
+  if(!clientId&&!yaOk){ document.getElementById('setup-overlay').classList.remove('hidden'); }
+  else { document.getElementById('setup-overlay').classList.add('hidden'); iniciarGoogleAuth(); renderHome(); }
+};
+
+function guardarClientId(){
+  const val=document.getElementById('setup-client-id').value.trim();
+  if(!val){mostrarToast('⚠️ Ingresá el Client ID');return;}
+  saveClientId(val); localStorage.setItem('finanzas_setup_done','1');
+  document.getElementById('setup-overlay').classList.add('hidden');
+  iniciarGoogleAuth(); renderHome();
+}
+function usarSinDrive(){
+  localStorage.setItem('finanzas_setup_done','1');
+  document.getElementById('setup-overlay').classList.add('hidden');
+  renderHome();
+}
+function mostrarCambioClientId(){
+  const nuevo=prompt('Ingresá el nuevo Client ID de Google:');
+  if(nuevo&&nuevo.trim()){ saveClientId(nuevo.trim()); saveDriveToken(null); accessToken=null; driveFileId=null; mostrarToast('✅ Client ID actualizado'); actualizarBadgeDrive(); iniciarGoogleAuth(); }
+}
+
+// ── GOOGLE AUTH ──
+function iniciarGoogleAuth(){
+  const clientId=getClientId();
+  if(!clientId||!window.google)return;
+  try{
+    tokenClient=google.accounts.oauth2.initTokenClient({
+      client_id:clientId, scope:SCOPES,
+      callback:async(resp)=>{
+        if(resp.error){mostrarToast('❌ Error al conectar con Google');return;}
+        accessToken=resp.access_token; saveDriveToken(accessToken);
+        mostrarToast('✅ Drive conectado'); actualizarBadgeDrive(); actualizarUIConfig();
+        await sincronizarDrive();
+      }
+    });
+    const saved=getDriveToken();
+    if(saved){ accessToken=saved; actualizarBadgeDrive(); actualizarUIConfig(); sincronizarDrive().catch(()=>{ accessToken=null; saveDriveToken(null); actualizarBadgeDrive(); actualizarUIConfig(); }); }
+  }catch(e){console.warn('Auth init:',e);}
+}
+
+function conectarDrive(){
+  const clientId=getClientId();
+  if(!clientId){mostrarToast('⚠️ Primero configurá el Client ID');return;}
+  if(!tokenClient){iniciarGoogleAuth();setTimeout(conectarDrive,1000);return;}
+  tokenClient.requestAccessToken({prompt:'consent'});
+}
+function desconectarDrive(){
+  if(accessToken)google.accounts.oauth2.revoke(accessToken,()=>{});
+  accessToken=null; driveFileId=null; saveDriveToken(null);
+  mostrarToast('Drive desconectado'); actualizarBadgeDrive(); actualizarUIConfig();
+}
+
+async function sincronizarDrive(){
+  if(!accessToken||sincronizando)return;
+  sincronizando=true; setBadge('syncing','🔄 Sincronizando...');
+  try{
+    if(!driveFileId){
+      const search=await driveReq(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${FILE_NAME}'&fields=files(id)`);
+      const files=search.files||[];
+      if(files.length>0){
+        driveFileId=files[0].id;
+        const remote=await driveReq(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`);
+        const remoteData=Array.isArray(remote)?remote:[];
+        saveData(mergeData(getData(),remoteData));
+        renderHome();
+      }
+    }
+    await subirDrive(getData());
+    setBadge('connected','☁️ Drive sincronizado');
+  }catch(e){
+    console.warn('Sync error:',e);
+    if(e.status===401){ accessToken=null; saveDriveToken(null); setBadge('disconnected','Drive: sesión expirada'); }
+    else setBadge('connected','☁️ Drive conectado');
+  }
+  sincronizando=false; actualizarUIConfig();
+}
+
+function mergeData(local,remote){
+  const map={};
+  [...remote,...local].forEach(m=>{map[m.id]=m;});
+  return Object.values(map).sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
+}
+
+async function subirDrive(datos){
+  const body=JSON.stringify(datos);
+  if(driveFileId){
+    await driveReq(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`,'PATCH',body,'application/json');
+  } else {
+    const boundary='-------314159265358979323846';
+    const meta={name:FILE_NAME,parents:['appDataFolder']};
+    const multipart=`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${body}\r\n--${boundary}--`;
+    const res=await driveReq('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&spaces=appDataFolder','POST',multipart,`multipart/related; boundary="${boundary}"`);
+    driveFileId=res.id;
+  }
+}
+
+async function driveReq(url,method='GET',body=null,contentType=null){
+  const opts={method,headers:{Authorization:`Bearer ${accessToken}`}};
+  if(body){opts.body=body;opts.headers['Content-Type']=contentType||'application/json';}
+  const res=await fetch(url,opts);
+  if(!res.ok){const err=new Error(await res.text());err.status=res.status;throw err;}
+  try{return await res.json();}catch{return{};}
+}
+
+async function guardarEnDrive(){ if(!accessToken)return; try{await subirDrive(getData());}catch(e){console.warn('AutoSave:',e);} }
+
+function setBadge(estado,texto){
+  const b=document.getElementById('drive-badge-home');
+  const d=document.getElementById('drive-dot-home');
+  const t=document.getElementById('drive-status-text');
+  b.className=`drive-badge ${estado}`;
+  d.className=`drive-dot${estado==='syncing'?' pulse':''}`;
+  t.textContent=texto;
+}
+function actualizarBadgeDrive(){ accessToken?setBadge('connected','☁️ Drive conectado'):setBadge('disconnected','Drive: no conectado — tocá para configurar'); }
+function actualizarUIConfig(){
+  const ok=!!accessToken;
+  document.getElementById('btn-drive-connect').style.display   =ok?'none':'block';
+  document.getElementById('btn-drive-disconnect').style.display=ok?'block':'none';
+  document.getElementById('btn-drive-sync').style.display      =ok?'block':'none';
+  document.getElementById('drive-config-desc').textContent=ok?'✅ Tus datos se sincronizan automáticamente con Google Drive.':'Conectá tu Drive para que los datos se guarden automáticamente en la nube.';
+}
+
+// ── NAV ──
+function navegar(dest){
+  ['home','historial','resumen','config','form'].forEach(s=>{ document.getElementById('screen-'+s)?.classList.remove('active'); document.getElementById('nav-'+s)?.classList.remove('active'); });
+  document.getElementById('screen-'+dest).classList.add('active');
+  document.getElementById('nav-'+dest)?.classList.add('active');
+  document.getElementById('main-nav').style.display='flex';
+  if(dest==='home')      renderHome();
+  if(dest==='historial'){mesVisto=new Date();renderHistorial();}
+  if(dest==='resumen')  {mesVistaResumen=new Date();renderResumen();}
+  if(dest==='config')   actualizarUIConfig();
+  window.scrollTo(0,0);
+}
+
+// ── HOME ──
+function renderHome(){
+  const data=getData(), mk=mesKey(new Date()), delMes=data.filter(m=>m.fecha.startsWith(mk));
+  const entradas=delMes.filter(m=>m.tipo==='entrada').reduce((a,m)=>a+m.monto,0);
+  const gastos=delMes.filter(m=>m.tipo==='gasto').reduce((a,m)=>a+m.monto,0);
+  const saldo=entradas-gastos;
+  const el=document.getElementById('saldo-home');
+  el.textContent=fmt(saldo); el.className='balance-amount'+(saldo<0?' negative':saldo>0?' positive':'');
+  document.getElementById('total-entradas-home').textContent=fmt(entradas);
+  document.getElementById('total-gastos-home').textContent=fmt(gastos);
+  const lista=document.getElementById('lista-home');
+  const ultimos=[...data].reverse().slice(0,10);
+  lista.innerHTML=ultimos.length?ultimos.map(m=>txHTML(m,false)).join(''):'<div class="empty-state"><div class="empty-icon">📭</div><p>Todavía no hay movimientos.<br>Tocá <b>Entrada</b> o <b>Gasto</b> para empezar.</p></div>';
+}
+
+function txHTML(m,conDelete=false){
+  const emoji=m.tipo==='entrada'?'💰':'💸';
+  const del=conDelete?`<button class="delete-btn" onclick="eliminar('${m.id}')">🗑</button>`:'';
+  return `<div class="tx-item"><div class="tx-dot ${m.tipo}">${emoji}</div><div class="tx-info"><div class="tx-cat">${m.categoria}</div><div class="tx-detail">${m.detalle||'—'}</div></div><div class="tx-right"><div class="tx-amount ${m.tipo}">${m.tipo==='entrada'?'+':'-'}${fmt(m.monto)}</div><div class="tx-date">${fmtFecha(m.fecha)}</div></div>${del}</div>`;
+}
+
+// ── FORM ──
+function abrirForm(tipo){
+  tipoActual=tipo;
+  ['home','historial','resumen','config'].forEach(s=>document.getElementById('screen-'+s).classList.remove('active'));
+  document.getElementById('screen-form').classList.add('active');
+  document.getElementById('main-nav').style.display='none';
+  const esE=tipo==='entrada';
+  document.getElementById('form-title').innerHTML=esE?'<span class="entrada">💰 Nueva Entrada</span>':'<span class="gasto">💸 Nuevo Gasto</span>';
+  const cats=esE?CATS_ENTRADA:CATS_GASTO;
+  const sel=document.getElementById('form-cat');
+  sel.innerHTML='<option value="">— Elegí una categoría —</option>'+cats.map(c=>`<option>${c}</option>`).join('');
+  sel.className='field-select'+(esE?'':' gasto-mode');
+  document.getElementById('form-detalle').value='';
+  document.getElementById('form-monto').value='';
+  const btn=document.getElementById('btn-submit-form');
+  btn.className='btn-submit '+tipo; btn.textContent=esE?'Guardar entrada':'Guardar gasto';
+  document.getElementById('form-monto').focus(); window.scrollTo(0,0);
+}
+function volverHome(){
+  document.getElementById('screen-form').classList.remove('active');
+  document.getElementById('screen-home').classList.add('active');
+  document.getElementById('main-nav').style.display='flex';
+  ['historial','resumen','config'].forEach(s=>document.getElementById('nav-'+s).classList.remove('active'));
+  document.getElementById('nav-home').classList.add('active');
+  renderHome();
+}
+async function guardarMovimiento(){
+  const cat=document.getElementById('form-cat').value.trim();
+  const detalle=document.getElementById('form-detalle').value.trim();
+  const monto=parseFloat(document.getElementById('form-monto').value);
+  if(!cat){mostrarToast('⚠️ Elegí una categoría');return;}
+  if(!monto||monto<=0){mostrarToast('⚠️ Ingresá un monto válido');return;}
+  const data=getData();
+  data.push({id:Date.now().toString(),tipo:tipoActual,categoria:cat,detalle,monto,fecha:new Date().toISOString()});
+  saveData(data); mostrarToast(tipoActual==='entrada'?'✅ Entrada guardada':'✅ Gasto guardado');
+  guardarEnDrive();
+  setTimeout(volverHome,600);
+}
+
+// ── HISTORIAL ──
+function cambiarMes(d){mesVisto.setMonth(mesVisto.getMonth()+d);renderHistorial();}
+function renderHistorial(){
+  document.getElementById('mes-label').textContent=mesNombre(mesVisto);
+  const mk=mesKey(mesVisto);
+  const data=getData().filter(m=>m.fecha.startsWith(mk)).reverse();
+  const lista=document.getElementById('lista-historial');
+  lista.innerHTML=data.length?data.map(m=>txHTML(m,true)).join(''):'<div class="empty-state"><div class="empty-icon">📭</div><p>Sin movimientos en este mes.</p></div>';
+}
+function eliminar(id){
+  if(!confirm('¿Eliminar este movimiento?'))return;
+  saveData(getData().filter(m=>m.id!==id)); guardarEnDrive(); renderHistorial(); mostrarToast('🗑 Eliminado');
+}
+
+// ── RESUMEN ──
+function cambiarMesResumen(d){mesVistaResumen.setMonth(mesVistaResumen.getMonth()+d);renderResumen();}
+function renderResumen(){
+  document.getElementById('mes-label-resumen').textContent=mesNombre(mesVistaResumen);
+  const mk=mesKey(mesVistaResumen);
+  const data=getData().filter(m=>m.fecha.startsWith(mk));
+  const entradas=data.filter(m=>m.tipo==='entrada').reduce((a,m)=>a+m.monto,0);
+  const gastos=data.filter(m=>m.tipo==='gasto').reduce((a,m)=>a+m.monto,0);
+  const saldo=entradas-gastos;
+  document.getElementById('resumen-grid').innerHTML=`
+    <div class="resumen-card"><div class="resumen-card-label">↑ Entradas</div><div class="resumen-card-value entrada">${fmt(entradas)}</div></div>
+    <div class="resumen-card"><div class="resumen-card-label">↓ Gastos</div><div class="resumen-card-value gasto">${fmt(gastos)}</div></div>
+    <div class="resumen-card full"><div class="resumen-card-label">Saldo del mes</div><div class="resumen-card-value ${saldo>=0?'entrada':'gasto'}">${fmt(saldo)}</div></div>`;
+  const cats={};
+  data.forEach(m=>{if(!cats[m.categoria])cats[m.categoria]={tipo:m.tipo,total:0};cats[m.categoria].total+=m.monto;});
+  const lista=document.getElementById('lista-resumen-cats');
+  const entries=Object.entries(cats).sort((a,b)=>b[1].total-a[1].total);
+  lista.innerHTML=entries.length?entries.map(([cat,v])=>`<div class="tx-item"><div class="tx-dot ${v.tipo}">${v.tipo==='entrada'?'💰':'💸'}</div><div class="tx-info"><div class="tx-cat">${cat}</div></div><div class="tx-right"><div class="tx-amount ${v.tipo}">${fmt(v.total)}</div></div></div>`).join(''):'<div class="empty-state"><div class="empty-icon">📭</div><p>Sin datos este mes.</p></div>';
+}
+
+// ── EXPORT/IMPORT ──
+function exportarJSON(){
+  const blob=new Blob([JSON.stringify(getData(),null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`finanzas_backup_${new Date().toISOString().slice(0,10)}.json`; a.click();
+  mostrarToast('📤 Archivo exportado');
+}
+function importarJSON(e){
+  const file=e.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const imported=JSON.parse(ev.target.result);
+      if(!Array.isArray(imported))throw new Error();
+      saveData(mergeData(getData(),imported)); guardarEnDrive();
+      mostrarToast(`✅ ${imported.length} registros importados`); renderHome();
+    }catch{mostrarToast('❌ Archivo inválido');}
+  };
+  reader.readAsText(file); e.target.value='';
+}
+
+// ── TOAST ──
+function mostrarToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+</script>
+</body>
+</html>
