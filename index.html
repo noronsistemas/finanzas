@@ -15,6 +15,7 @@
     --bg: #0f1923; --surface: #19252f; --surface2: #1e2e3a;
     --entrada: #00e5a0; --entrada-dim: #00e5a015;
     --gasto: #ff5f7e;  --gasto-dim: #ff5f7e15;
+    --soporte: #ff8c00; --soporte-dim: #ff8c0015;
     --text: #e8f0f5; --text-muted: #6b8fa3; --border: #263545;
     --mono: 'DM Mono', monospace; --sans: 'Sora', sans-serif; --radius: 16px;
   }
@@ -70,8 +71,11 @@
   .tx-amount { font-family:var(--mono); font-size:15px; font-weight:500; }
   .tx-amount.entrada { color:var(--entrada); }
   .tx-amount.gasto   { color:var(--gasto); }
-  .tx-date   { font-size:10px; color:var(--text-muted); margin-top:2px; font-family:var(--mono); }
-  .delete-btn { background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:16px; padding:4px 8px; border-radius:6px; margin-left:auto; }
+  .tx-date   { font-size:10px; color:var(--text-muted); margin-top:3px; font-family:var(--mono); }
+  .tx-acciones { display:flex; gap:2px; justify-content:flex-end; margin-top:4px; }
+  .edit-btn   { background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:15px; padding:3px 6px; border-radius:6px; }
+  .edit-btn:active { color:var(--entrada); }
+  .delete-btn { background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:15px; padding:3px 6px; border-radius:6px; }
   .delete-btn:active { color:var(--gasto); }
 
   .empty-state { text-align:center; padding:48px 20px; color:var(--text-muted); }
@@ -112,6 +116,63 @@
   .resumen-card-value.entrada { color:var(--entrada); }
   .resumen-card-value.gasto   { color:var(--gasto); }
 
+  /* ── SOPORTE ── */
+  .soporte-hero { margin:8px 20px 20px; padding:28px 24px; background:linear-gradient(135deg,#1a2535,#1e2e40); border:1px solid #2a3f55; border-radius:var(--radius); text-align:center; }
+  .soporte-hero-icon { font-size:44px; margin-bottom:12px; }
+  .soporte-hero-title { font-size:18px; font-weight:700; margin-bottom:6px; }
+  .soporte-hero-desc { font-size:13px; color:var(--text-muted); line-height:1.5; }
+
+  .btn-soporte-main { margin:0 20px 24px; padding:20px; border:none; border-radius:var(--radius); background:linear-gradient(135deg,#c84b00,#ff8c00); color:#fff; font-family:var(--sans); font-size:17px; font-weight:700; cursor:pointer; width:calc(100% - 40px); display:flex; align-items:center; justify-content:center; gap:10px; box-shadow:0 4px 20px #ff8c0030; transition:transform .15s, box-shadow .15s; }
+  .btn-soporte-main:active { transform:scale(.97); box-shadow:0 2px 10px #ff8c0020; }
+
+  /* Form soporte */
+  .soporte-form-body { padding:0 20px; display:flex; flex-direction:column; gap:16px; }
+  .tipo-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .tipo-btn { padding:16px 10px; border:1.5px solid var(--border); border-radius:12px; background:var(--surface); color:var(--text); font-family:var(--sans); font-size:13px; font-weight:600; cursor:pointer; text-align:center; transition:all .15s; display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .tipo-btn .tipo-icon { font-size:26px; }
+  .tipo-btn.selected { border-color:var(--soporte); background:var(--soporte-dim); color:var(--soporte); }
+  .tipo-btn:active { transform:scale(.96); }
+
+  .urgencia-row { display:flex; gap:8px; }
+  .urgencia-btn { flex:1; padding:11px; border:1.5px solid var(--border); border-radius:10px; background:var(--surface); color:var(--text-muted); font-family:var(--sans); font-size:12px; font-weight:600; cursor:pointer; text-align:center; transition:all .15s; }
+  .urgencia-btn.selected.baja  { border-color:#00e5a0; background:#00e5a015; color:var(--entrada); }
+  .urgencia-btn.selected.media { border-color:#f0a500; background:#f0a50015; color:#f0a500; }
+  .urgencia-btn.selected.alta  { border-color:#ff5f7e; background:#ff5f7e15; color:var(--gasto); }
+
+  .btn-submit.soporte { background:linear-gradient(135deg,#c84b00,#ff8c00); color:#fff; }
+
+  /* Modal confirmación */
+  .modal-overlay { position:fixed; inset:0; background:#000b; z-index:500; display:flex; align-items:flex-end; justify-content:center; animation:fadeIn .2s ease; }
+  .modal-overlay.hidden { display:none; }
+  .modal-box { background:var(--surface2); border:1px solid var(--border); border-radius:24px 24px 0 0; padding:28px 24px 44px; width:100%; max-width:500px; }
+  .modal-title { font-size:18px; font-weight:700; margin-bottom:6px; }
+  .modal-desc  { font-size:13px; color:var(--text-muted); line-height:1.5; margin-bottom:20px; }
+  .modal-detail { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:20px; display:flex; flex-direction:column; gap:8px; }
+  .modal-detail-row { display:flex; justify-content:space-between; align-items:center; font-size:13px; }
+  .modal-detail-label { color:var(--text-muted); }
+  .modal-detail-value { font-weight:600; }
+  .modal-btns { display:flex; gap:10px; }
+  .modal-btn { flex:1; padding:15px; border:none; border-radius:12px; font-family:var(--sans); font-size:14px; font-weight:700; cursor:pointer; transition:transform .15s; }
+  .modal-btn:active { transform:scale(.97); }
+  .modal-btn.cancel  { background:var(--surface); border:1px solid var(--border); color:var(--text-muted); }
+  .modal-btn.confirm { background:linear-gradient(135deg,#c84b00,#ff8c00); color:#fff; }
+
+  /* Historial tickets */
+  .ticket-list { display:flex; flex-direction:column; gap:10px; padding:0 20px; }
+  .ticket-item { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 16px; display:flex; flex-direction:column; gap:8px; animation:fadeIn .2s ease; }
+  .ticket-header { display:flex; align-items:center; justify-content:space-between; }
+  .ticket-tipo { font-size:14px; font-weight:700; display:flex; align-items:center; gap:6px; }
+  .ticket-estado { font-size:10px; font-weight:700; padding:3px 9px; border-radius:100px; }
+  .ticket-estado.pendiente { background:#f0a50020; color:#f0a500; border:1px solid #f0a50050; }
+  .ticket-estado.resuelto  { background:#00e5a020; color:var(--entrada); border:1px solid #00e5a050; }
+  .ticket-meta { font-size:11px; color:var(--text-muted); display:flex; gap:12px; }
+  .ticket-nota { font-size:12px; color:var(--text); background:var(--surface2); padding:8px 10px; border-radius:8px; line-height:1.4; }
+  .ticket-actions { display:flex; gap:8px; }
+  .ticket-action-btn { font-size:11px; font-weight:600; padding:5px 12px; border-radius:8px; border:1px solid var(--border); background:none; color:var(--text-muted); cursor:pointer; transition:all .15s; }
+  .ticket-action-btn.resolver { border-color:#00e5a050; color:var(--entrada); }
+  .ticket-action-btn:active { transform:scale(.96); }
+
+  /* Config */
   .config-section { padding:16px 20px 0; }
   .config-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; margin-bottom:16px; }
   .config-card-title { font-size:13px; font-weight:700; margin-bottom:4px; }
@@ -124,9 +185,10 @@
   .btn-config+.btn-config { margin-top:8px; }
 
   .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:var(--surface); border-top:1px solid var(--border); display:flex; z-index:100; }
-  .nav-btn { flex:1; padding:12px 8px 20px; display:flex; flex-direction:column; align-items:center; gap:4px; background:none; border:none; cursor:pointer; color:var(--text-muted); font-family:var(--sans); font-size:10px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; transition:color .2s; }
+  .nav-btn { flex:1; padding:10px 4px 18px; display:flex; flex-direction:column; align-items:center; gap:3px; background:none; border:none; cursor:pointer; color:var(--text-muted); font-family:var(--sans); font-size:9px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; transition:color .2s; }
   .nav-btn.active { color:var(--entrada); }
-  .nav-btn .nav-icon { font-size:20px; }
+  .nav-btn.active.soporte-nav { color:var(--soporte); }
+  .nav-btn .nav-icon { font-size:19px; }
 
   .toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:12px 20px; border-radius:100px; font-size:13px; font-weight:600; opacity:0; transition:all .3s; pointer-events:none; white-space:nowrap; z-index:200; }
   .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
@@ -154,6 +216,19 @@
   <div class="setup-hint">Tu técnico te va a dar este código. Solo se configura una vez y tus datos quedan protegidos en tu Google Drive personal.</div>
   <button class="btn-setup-primary" onclick="guardarClientId()">Guardar y conectar</button>
   <button class="btn-setup-secondary" onclick="usarSinDrive()">Usar sin Drive (solo en este celu)</button>
+</div>
+
+<!-- MODAL CONFIRMACIÓN SOPORTE -->
+<div class="modal-overlay hidden" id="modal-soporte">
+  <div class="modal-box">
+    <div class="modal-title">🛠️ Confirmar solicitud</div>
+    <div class="modal-desc">¿Estás seguro que querés enviar este pedido de soporte técnico?</div>
+    <div class="modal-detail" id="modal-detail-content"></div>
+    <div class="modal-btns">
+      <button class="modal-btn cancel" onclick="cerrarModal()">Cancelar</button>
+      <button class="modal-btn confirm" onclick="confirmarTicket()">Sí, enviar</button>
+    </div>
+  </div>
 </div>
 
 <!-- HOME -->
@@ -194,7 +269,7 @@
   <div class="tx-list" id="lista-home"></div>
 </div>
 
-<!-- FORM -->
+<!-- FORM FINANZAS -->
 <div class="screen" id="screen-form">
   <div class="form-header">
     <button class="btn-back" onclick="volverHome()">←</button>
@@ -244,6 +319,66 @@
   <div class="tx-list" id="lista-resumen-cats"></div>
 </div>
 
+<!-- SOPORTE -->
+<div class="screen" id="screen-soporte">
+  <div class="header"><div class="header-row"><span class="app-title">Soporte Técnico</span></div></div>
+
+  <div class="soporte-hero">
+    <div class="soporte-hero-icon">🛠️</div>
+    <div class="soporte-hero-title">¿Necesitás ayuda?</div>
+    <div class="soporte-hero-desc">Completá el formulario y Guillermo de Norón Sistemas se va a comunicar con vos a la brevedad.</div>
+  </div>
+
+  <button class="btn-soporte-main" onclick="abrirFormSoporte()">
+    🆘 Solicitar soporte técnico
+  </button>
+
+  <div class="section-title">Mis tickets anteriores</div>
+  <div class="ticket-list" id="lista-tickets"></div>
+</div>
+
+<!-- FORM SOPORTE -->
+<div class="screen" id="screen-soporte-form">
+  <div class="form-header">
+    <button class="btn-back" onclick="navegar('soporte')">←</button>
+    <div class="form-title"><span style="color:var(--soporte)">🛠️ Nuevo ticket</span></div>
+  </div>
+  <div class="soporte-form-body">
+
+    <div class="field-group">
+      <label class="field-label">Tu nombre</label>
+      <input class="field-input" id="ticket-nombre" type="text" placeholder="ej: Sylvia Frey" maxlength="50">
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">¿Qué tiene problema?</label>
+      <div class="tipo-grid" id="tipo-grid">
+        <button class="tipo-btn" onclick="selTipo(this,'Computadora / PC')"><span class="tipo-icon">💻</span>Computadora</button>
+        <button class="tipo-btn" onclick="selTipo(this,'Impresora')"><span class="tipo-icon">🖨️</span>Impresora</button>
+        <button class="tipo-btn" onclick="selTipo(this,'Internet / Red')"><span class="tipo-icon">🌐</span>Internet / Red</button>
+        <button class="tipo-btn" onclick="selTipo(this,'Teléfono / Celu')"><span class="tipo-icon">📱</span>Teléfono / Celu</button>
+        <button class="tipo-btn" onclick="selTipo(this,'Otro')" style="grid-column:1/-1"><span class="tipo-icon">❓</span>Otro</button>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Urgencia</label>
+      <div class="urgencia-row">
+        <button class="urgencia-btn baja"  onclick="selUrgencia(this,'🟢 Baja')">🟢 Baja</button>
+        <button class="urgencia-btn media" onclick="selUrgencia(this,'🟡 Media')">🟡 Media</button>
+        <button class="urgencia-btn alta"  onclick="selUrgencia(this,'🔴 Alta')">🔴 Alta</button>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Descripción del problema (opcional)</label>
+      <input class="field-input" id="ticket-desc" type="text" placeholder="Contame brevemente qué pasó..." maxlength="120">
+    </div>
+
+    <button class="btn-submit soporte" onclick="abrirModalConfirmacion()">Revisar y enviar</button>
+  </div>
+</div>
+
 <!-- CONFIG -->
 <div class="screen" id="screen-config">
   <div class="header"><div class="header-row"><span class="app-title">Configuración</span></div></div>
@@ -276,35 +411,47 @@
 
 <!-- NAV -->
 <nav class="bottom-nav" id="main-nav">
-  <button class="nav-btn active" onclick="navegar('home')"      id="nav-home">     <span class="nav-icon">🏠</span>Inicio</button>
-  <button class="nav-btn"        onclick="navegar('historial')" id="nav-historial"> <span class="nav-icon">📋</span>Historial</button>
-  <button class="nav-btn"        onclick="navegar('resumen')"   id="nav-resumen">   <span class="nav-icon">📊</span>Resumen</button>
-  <button class="nav-btn"        onclick="navegar('config')"    id="nav-config">    <span class="nav-icon">⚙️</span>Config</button>
+  <button class="nav-btn active" onclick="navegar('home')"         id="nav-home">     <span class="nav-icon">🏠</span>Inicio</button>
+  <button class="nav-btn"        onclick="navegar('historial')"    id="nav-historial"> <span class="nav-icon">📋</span>Historial</button>
+  <button class="nav-btn"        onclick="navegar('resumen')"      id="nav-resumen">   <span class="nav-icon">📊</span>Resumen</button>
+  <button class="nav-btn"        onclick="navegar('soporte')"      id="nav-soporte">   <span class="nav-icon">🛠️</span>Soporte</button>
+  <button class="nav-btn"        onclick="navegar('config')"       id="nav-config">    <span class="nav-icon">⚙️</span>Config</button>
 </nav>
 <div class="toast" id="toast"></div>
 
 <script>
-const DEFAULT_CLIENT_ID = '250973828907-vaandm5m5b3d20b0aen1s9v22v2fbsnd.apps.googleusercontent.com'; // ← PEGAR ACÁ: TU_CLIENT_ID.apps.googleusercontent.com
-const SCOPES    = 'https://www.googleapis.com/auth/drive.appdata';
-const FILE_NAME = 'finanzas_backup.json';
+// ══ CONFIG ══
+const DEFAULT_CLIENT_ID = '250973828907-vaandm5m5b3d20b0aen1s9v22v2fbsnd.apps.googleusercontent.com';
+const TG_TOKEN   = '7003914810:AAGzZpvgRcfR2QXFvXU7CFdyCdi7pjZM0YA';
+const TG_CHAT_ID = '1258648667';
+const SCOPES     = 'https://www.googleapis.com/auth/drive.appdata';
+const FILE_NAME  = 'finanzas_backup.json';
 const CATS_ENTRADA = ['Sesiones de psicología','Otros ingresos'];
 const CATS_GASTO   = ['Supermercado','Servicios (luz, gas, etc.)','Farmacia / Salud','Transporte','Otros gastos'];
 
 let tipoActual='entrada', mesVisto=new Date(), mesVistaResumen=new Date();
 let tokenClient=null, accessToken=null, driveFileId=null, sincronizando=false;
+let tipoSeleccionado='', urgenciaSeleccionada='';
+let editandoId=null;
 
-function getData()       { try{return JSON.parse(localStorage.getItem('finanzas_movs')||'[]')}catch{return[]} }
-function saveData(d)     { localStorage.setItem('finanzas_movs',JSON.stringify(d)); }
-function getClientId()   { return localStorage.getItem('finanzas_client_id')||DEFAULT_CLIENT_ID; }
-function saveClientId(v) { localStorage.setItem('finanzas_client_id',v); }
-function getDriveToken() { return localStorage.getItem('finanzas_drive_token')||null; }
+// ── Storage ──
+function getData()        { try{return JSON.parse(localStorage.getItem('finanzas_movs')||'[]')}catch{return[]} }
+function saveData(d)      { localStorage.setItem('finanzas_movs',JSON.stringify(d)); }
+function getTickets()     { try{return JSON.parse(localStorage.getItem('finanzas_tickets')||'[]')}catch{return[]} }
+function saveTickets(d)   { localStorage.setItem('finanzas_tickets',JSON.stringify(d)); }
+function getClientId()    { return localStorage.getItem('finanzas_client_id')||DEFAULT_CLIENT_ID; }
+function saveClientId(v)  { localStorage.setItem('finanzas_client_id',v); }
+function getDriveToken()  { return localStorage.getItem('finanzas_drive_token')||null; }
 function saveDriveToken(t){ t?localStorage.setItem('finanzas_drive_token',t):localStorage.removeItem('finanzas_drive_token'); }
 
-function fmt(n){ return '$ '+Math.abs(n).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+// ── Format ──
+function fmt(n){ return '$ '+Math.abs(n).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0,useGrouping:true}); }
 function fmtFecha(iso){ return new Date(iso).toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit',year:'2-digit'}); }
+function fmtHora(iso){ return new Date(iso).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}); }
 function mesKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
 function mesNombre(d){ return d.toLocaleDateString('es-AR',{month:'long',year:'numeric'}); }
 
+// ── INIT ──
 window.onload=()=>{
   document.getElementById('header-date').textContent=new Date().toLocaleDateString('es-AR',{weekday:'short',day:'numeric',month:'short'});
   const clientId=getClientId();
@@ -313,6 +460,7 @@ window.onload=()=>{
   else { document.getElementById('setup-overlay').classList.add('hidden'); iniciarGoogleAuth(); renderHome(); }
 };
 
+// ── SETUP ──
 function guardarClientId(){
   const val=document.getElementById('setup-client-id').value.trim();
   if(!val){mostrarToast('⚠️ Ingresá el Client ID');return;}
@@ -330,7 +478,7 @@ function mostrarCambioClientId(){
   if(nuevo&&nuevo.trim()){ saveClientId(nuevo.trim()); saveDriveToken(null); accessToken=null; driveFileId=null; mostrarToast('✅ Client ID actualizado'); actualizarBadgeDrive(); iniciarGoogleAuth(); }
 }
 
-// ── GOOGLE AUTH ──
+// ══ GOOGLE DRIVE ══
 function iniciarGoogleAuth(){
   const clientId=getClientId();
   if(!clientId||!window.google)return;
@@ -348,7 +496,6 @@ function iniciarGoogleAuth(){
     if(saved){ accessToken=saved; actualizarBadgeDrive(); actualizarUIConfig(); sincronizarDrive().catch(()=>{ accessToken=null; saveDriveToken(null); actualizarBadgeDrive(); actualizarUIConfig(); }); }
   }catch(e){console.warn('Auth init:',e);}
 }
-
 function conectarDrive(){
   const clientId=getClientId();
   if(!clientId){mostrarToast('⚠️ Primero configurá el Client ID');return;}
@@ -360,7 +507,6 @@ function desconectarDrive(){
   accessToken=null; driveFileId=null; saveDriveToken(null);
   mostrarToast('Drive desconectado'); actualizarBadgeDrive(); actualizarUIConfig();
 }
-
 async function sincronizarDrive(){
   if(!accessToken||sincronizando)return;
   sincronizando=true; setBadge('syncing','🔄 Sincronizando...');
@@ -371,81 +517,53 @@ async function sincronizarDrive(){
       if(files.length>0){
         driveFileId=files[0].id;
         const remote=await driveReq(`https://www.googleapis.com/drive/v3/files/${driveFileId}?alt=media`);
-        const remoteData=Array.isArray(remote)?remote:[];
-        saveData(mergeData(getData(),remoteData));
+        if(remote&&remote.movs){ saveData(mergeData(getData(),remote.movs||[])); if(remote.tickets) saveTickets(mergeTickets(getTickets(),remote.tickets)); }
         renderHome();
       }
     }
-    await subirDrive(getData());
+    await subirDrive();
     setBadge('connected','☁️ Drive sincronizado');
   }catch(e){
-    console.warn('Sync error:',e);
     if(e.status===401){ accessToken=null; saveDriveToken(null); setBadge('disconnected','Drive: sesión expirada'); }
     else setBadge('connected','☁️ Drive conectado');
   }
   sincronizando=false; actualizarUIConfig();
 }
+function mergeData(local,remote){ const map={}; [...remote,...local].forEach(m=>{map[m.id]=m;}); return Object.values(map).sort((a,b)=>new Date(a.fecha)-new Date(b.fecha)); }
+function mergeTickets(local,remote){ const map={}; [...remote,...local].forEach(t=>{map[t.id]=t;}); return Object.values(map).sort((a,b)=>new Date(a.fecha)-new Date(b.fecha)); }
+async function subirDrive(){ const body=JSON.stringify({movs:getData(),tickets:getTickets()}); if(driveFileId){ await driveReq(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`,'PATCH',body,'application/json'); } else { const boundary='-------314159265358979323846'; const meta={name:FILE_NAME,parents:['appDataFolder']}; const mp=`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${body}\r\n--${boundary}--`; const res=await driveReq('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&spaces=appDataFolder','POST',mp,`multipart/related; boundary="${boundary}"`); driveFileId=res.id; } }
+async function driveReq(url,method='GET',body=null,ct=null){ const opts={method,headers:{Authorization:`Bearer ${accessToken}`}}; if(body){opts.body=body;opts.headers['Content-Type']=ct||'application/json';} const res=await fetch(url,opts); if(!res.ok){const err=new Error(await res.text());err.status=res.status;throw err;} try{return await res.json();}catch{return{};} }
+async function guardarEnDrive(){ if(!accessToken)return; try{await subirDrive();}catch(e){console.warn('AutoSave:',e);} }
 
-function mergeData(local,remote){
-  const map={};
-  [...remote,...local].forEach(m=>{map[m.id]=m;});
-  return Object.values(map).sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
-}
-
-async function subirDrive(datos){
-  const body=JSON.stringify(datos);
-  if(driveFileId){
-    await driveReq(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=media`,'PATCH',body,'application/json');
-  } else {
-    const boundary='-------314159265358979323846';
-    const meta={name:FILE_NAME,parents:['appDataFolder']};
-    const multipart=`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${body}\r\n--${boundary}--`;
-    const res=await driveReq('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&spaces=appDataFolder','POST',multipart,`multipart/related; boundary="${boundary}"`);
-    driveFileId=res.id;
-  }
-}
-
-async function driveReq(url,method='GET',body=null,contentType=null){
-  const opts={method,headers:{Authorization:`Bearer ${accessToken}`}};
-  if(body){opts.body=body;opts.headers['Content-Type']=contentType||'application/json';}
-  const res=await fetch(url,opts);
-  if(!res.ok){const err=new Error(await res.text());err.status=res.status;throw err;}
-  try{return await res.json();}catch{return{};}
-}
-
-async function guardarEnDrive(){ if(!accessToken)return; try{await subirDrive(getData());}catch(e){console.warn('AutoSave:',e);} }
-
-function setBadge(estado,texto){
-  const b=document.getElementById('drive-badge-home');
-  const d=document.getElementById('drive-dot-home');
-  const t=document.getElementById('drive-status-text');
-  b.className=`drive-badge ${estado}`;
-  d.className=`drive-dot${estado==='syncing'?' pulse':''}`;
-  t.textContent=texto;
-}
+function setBadge(estado,texto){ const b=document.getElementById('drive-badge-home'); const d=document.getElementById('drive-dot-home'); const t=document.getElementById('drive-status-text'); b.className=`drive-badge ${estado}`; d.className=`drive-dot${estado==='syncing'?' pulse':''}`; t.textContent=texto; }
 function actualizarBadgeDrive(){ accessToken?setBadge('connected','☁️ Drive conectado'):setBadge('disconnected','Drive: no conectado — tocá para configurar'); }
-function actualizarUIConfig(){
-  const ok=!!accessToken;
-  document.getElementById('btn-drive-connect').style.display   =ok?'none':'block';
-  document.getElementById('btn-drive-disconnect').style.display=ok?'block':'none';
-  document.getElementById('btn-drive-sync').style.display      =ok?'block':'none';
-  document.getElementById('drive-config-desc').textContent=ok?'✅ Tus datos se sincronizan automáticamente con Google Drive.':'Conectá tu Drive para que los datos se guarden automáticamente en la nube.';
+function actualizarUIConfig(){ const ok=!!accessToken; document.getElementById('btn-drive-connect').style.display=ok?'none':'block'; document.getElementById('btn-drive-disconnect').style.display=ok?'block':'none'; document.getElementById('btn-drive-sync').style.display=ok?'block':'none'; document.getElementById('drive-config-desc').textContent=ok?'✅ Tus datos se sincronizan automáticamente con Google Drive.':'Conectá tu Drive para que los datos se guarden automáticamente en la nube.'; }
+
+// ══ TELEGRAM ══
+async function enviarTelegram(msg){
+  try{
+    await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({chat_id:TG_CHAT_ID, text:msg, parse_mode:'HTML'})
+    });
+  }catch(e){ console.warn('Telegram error:',e); }
 }
 
-// ── NAV ──
+// ══ NAV ══
 function navegar(dest){
-  ['home','historial','resumen','config','form'].forEach(s=>{ document.getElementById('screen-'+s)?.classList.remove('active'); document.getElementById('nav-'+s)?.classList.remove('active'); });
+  ['home','historial','resumen','soporte','soporte-form','config','form'].forEach(s=>{ document.getElementById('screen-'+s)?.classList.remove('active'); document.getElementById('nav-'+s)?.classList.remove('active'); });
   document.getElementById('screen-'+dest).classList.add('active');
   document.getElementById('nav-'+dest)?.classList.add('active');
   document.getElementById('main-nav').style.display='flex';
   if(dest==='home')      renderHome();
   if(dest==='historial'){mesVisto=new Date();renderHistorial();}
   if(dest==='resumen')  {mesVistaResumen=new Date();renderResumen();}
+  if(dest==='soporte')  renderTickets();
   if(dest==='config')   actualizarUIConfig();
   window.scrollTo(0,0);
 }
 
-// ── HOME ──
+// ══ HOME ══
 function renderHome(){
   const data=getData(), mk=mesKey(new Date()), delMes=data.filter(m=>m.fecha.startsWith(mk));
   const entradas=delMes.filter(m=>m.tipo==='entrada').reduce((a,m)=>a+m.monto,0);
@@ -459,17 +577,55 @@ function renderHome(){
   const ultimos=[...data].reverse().slice(0,10);
   lista.innerHTML=ultimos.length?ultimos.map(m=>txHTML(m,false)).join(''):'<div class="empty-state"><div class="empty-icon">📭</div><p>Todavía no hay movimientos.<br>Tocá <b>Entrada</b> o <b>Gasto</b> para empezar.</p></div>';
 }
-
 function txHTML(m,conDelete=false){
   const emoji=m.tipo==='entrada'?'💰':'💸';
-  const del=conDelete?`<button class="delete-btn" onclick="eliminar('${m.id}')">🗑</button>`:'';
-  return `<div class="tx-item"><div class="tx-dot ${m.tipo}">${emoji}</div><div class="tx-info"><div class="tx-cat">${m.categoria}</div><div class="tx-detail">${m.detalle||'—'}</div></div><div class="tx-right"><div class="tx-amount ${m.tipo}">${m.tipo==='entrada'?'+':'-'}${fmt(m.monto)}</div><div class="tx-date">${fmtFecha(m.fecha)}</div></div>${del}</div>`;
+  const acciones=conDelete?`
+    <div class="tx-acciones">
+      <button class="edit-btn" onclick="editarMovimiento('${m.id}')">✏️</button>
+      <button class="delete-btn" onclick="eliminar('${m.id}')">🗑</button>
+    </div>`:'';
+  return `<div class="tx-item">
+    <div class="tx-dot ${m.tipo}">${emoji}</div>
+    <div class="tx-info">
+      <div class="tx-cat">${m.categoria}</div>
+      <div class="tx-detail">${m.detalle||'—'}</div>
+      <div class="tx-date">${fmtFecha(m.fecha)} ${fmtHora(m.fecha)}</div>
+    </div>
+    <div class="tx-right">
+      <div class="tx-amount ${m.tipo}">${m.tipo==='entrada'?'+':'-'}${fmt(m.monto)}</div>
+      ${acciones}
+    </div>
+  </div>`;
 }
 
-// ── FORM ──
+// ══ FORM FINANZAS ══
+function editarMovimiento(id){
+  const data=getData();
+  const m=data.find(x=>x.id===id);
+  if(!m)return;
+  editandoId=id;
+  // abrir form en modo edición
+  ['home','historial','resumen','config','soporte'].forEach(s=>document.getElementById('screen-'+s).classList.remove('active'));
+  document.getElementById('screen-form').classList.add('active');
+  document.getElementById('main-nav').style.display='none';
+  const esE=m.tipo==='entrada';
+  document.getElementById('form-title').innerHTML=esE?'<span class="entrada">✏️ Editar Entrada</span>':'<span class="gasto">✏️ Editar Gasto</span>';
+  const cats=esE?CATS_ENTRADA:CATS_GASTO;
+  const sel=document.getElementById('form-cat');
+  sel.innerHTML='<option value="">— Elegí una categoría —</option>'+cats.map(c=>`<option${c===m.categoria?' selected':''}>${c}</option>`).join('');
+  sel.className='field-select'+(esE?'':' gasto-mode');
+  document.getElementById('form-detalle').value=m.detalle||'';
+  document.getElementById('form-monto').value=m.monto;
+  tipoActual=m.tipo;
+  const btn=document.getElementById('btn-submit-form');
+  btn.className='btn-submit '+m.tipo;
+  btn.textContent='Guardar cambios';
+  window.scrollTo(0,0);
+}
+
 function abrirForm(tipo){
   tipoActual=tipo;
-  ['home','historial','resumen','config'].forEach(s=>document.getElementById('screen-'+s).classList.remove('active'));
+  ['home','historial','resumen','config','soporte'].forEach(s=>document.getElementById('screen-'+s).classList.remove('active'));
   document.getElementById('screen-form').classList.add('active');
   document.getElementById('main-nav').style.display='none';
   const esE=tipo==='entrada';
@@ -480,18 +636,12 @@ function abrirForm(tipo){
   sel.className='field-select'+(esE?'':' gasto-mode');
   document.getElementById('form-detalle').value='';
   document.getElementById('form-monto').value='';
+  editandoId=null;
   const btn=document.getElementById('btn-submit-form');
   btn.className='btn-submit '+tipo; btn.textContent=esE?'Guardar entrada':'Guardar gasto';
   document.getElementById('form-monto').focus(); window.scrollTo(0,0);
 }
-function volverHome(){
-  document.getElementById('screen-form').classList.remove('active');
-  document.getElementById('screen-home').classList.add('active');
-  document.getElementById('main-nav').style.display='flex';
-  ['historial','resumen','config'].forEach(s=>document.getElementById('nav-'+s).classList.remove('active'));
-  document.getElementById('nav-home').classList.add('active');
-  renderHome();
-}
+function volverHome(){ document.getElementById('screen-form').classList.remove('active'); navegar('home'); }
 async function guardarMovimiento(){
   const cat=document.getElementById('form-cat').value.trim();
   const detalle=document.getElementById('form-detalle').value.trim();
@@ -499,13 +649,20 @@ async function guardarMovimiento(){
   if(!cat){mostrarToast('⚠️ Elegí una categoría');return;}
   if(!monto||monto<=0){mostrarToast('⚠️ Ingresá un monto válido');return;}
   const data=getData();
-  data.push({id:Date.now().toString(),tipo:tipoActual,categoria:cat,detalle,monto,fecha:new Date().toISOString()});
-  saveData(data); mostrarToast(tipoActual==='entrada'?'✅ Entrada guardada':'✅ Gasto guardado');
-  guardarEnDrive();
-  setTimeout(volverHome,600);
+  if(editandoId){
+    // modo edición: actualizar existente
+    const idx=data.findIndex(x=>x.id===editandoId);
+    if(idx>=0){ data[idx]={...data[idx],categoria:cat,detalle,monto}; }
+    editandoId=null;
+    saveData(data); mostrarToast('✅ Movimiento actualizado');
+  } else {
+    data.push({id:Date.now().toString(),tipo:tipoActual,categoria:cat,detalle,monto,fecha:new Date().toISOString()});
+    saveData(data); mostrarToast(tipoActual==='entrada'?'✅ Entrada guardada':'✅ Gasto guardado');
+  }
+  guardarEnDrive(); setTimeout(volverHome,600);
 }
 
-// ── HISTORIAL ──
+// ══ HISTORIAL ══
 function cambiarMes(d){mesVisto.setMonth(mesVisto.getMonth()+d);renderHistorial();}
 function renderHistorial(){
   document.getElementById('mes-label').textContent=mesNombre(mesVisto);
@@ -514,12 +671,9 @@ function renderHistorial(){
   const lista=document.getElementById('lista-historial');
   lista.innerHTML=data.length?data.map(m=>txHTML(m,true)).join(''):'<div class="empty-state"><div class="empty-icon">📭</div><p>Sin movimientos en este mes.</p></div>';
 }
-function eliminar(id){
-  if(!confirm('¿Eliminar este movimiento?'))return;
-  saveData(getData().filter(m=>m.id!==id)); guardarEnDrive(); renderHistorial(); mostrarToast('🗑 Eliminado');
-}
+function eliminar(id){ if(!confirm('¿Eliminar este movimiento?'))return; saveData(getData().filter(m=>m.id!==id)); guardarEnDrive(); renderHistorial(); mostrarToast('🗑 Eliminado'); }
 
-// ── RESUMEN ──
+// ══ RESUMEN ══
 function cambiarMesResumen(d){mesVistaResumen.setMonth(mesVistaResumen.getMonth()+d);renderResumen();}
 function renderResumen(){
   document.getElementById('mes-label-resumen').textContent=mesNombre(mesVistaResumen);
@@ -528,10 +682,7 @@ function renderResumen(){
   const entradas=data.filter(m=>m.tipo==='entrada').reduce((a,m)=>a+m.monto,0);
   const gastos=data.filter(m=>m.tipo==='gasto').reduce((a,m)=>a+m.monto,0);
   const saldo=entradas-gastos;
-  document.getElementById('resumen-grid').innerHTML=`
-    <div class="resumen-card"><div class="resumen-card-label">↑ Entradas</div><div class="resumen-card-value entrada">${fmt(entradas)}</div></div>
-    <div class="resumen-card"><div class="resumen-card-label">↓ Gastos</div><div class="resumen-card-value gasto">${fmt(gastos)}</div></div>
-    <div class="resumen-card full"><div class="resumen-card-label">Saldo del mes</div><div class="resumen-card-value ${saldo>=0?'entrada':'gasto'}">${fmt(saldo)}</div></div>`;
+  document.getElementById('resumen-grid').innerHTML=`<div class="resumen-card"><div class="resumen-card-label">↑ Entradas</div><div class="resumen-card-value entrada">${fmt(entradas)}</div></div><div class="resumen-card"><div class="resumen-card-label">↓ Gastos</div><div class="resumen-card-value gasto">${fmt(gastos)}</div></div><div class="resumen-card full"><div class="resumen-card-label">Saldo del mes</div><div class="resumen-card-value ${saldo>=0?'entrada':'gasto'}">${fmt(saldo)}</div></div>`;
   const cats={};
   data.forEach(m=>{if(!cats[m.categoria])cats[m.categoria]={tipo:m.tipo,total:0};cats[m.categoria].total+=m.monto;});
   const lista=document.getElementById('lista-resumen-cats');
@@ -539,29 +690,110 @@ function renderResumen(){
   lista.innerHTML=entries.length?entries.map(([cat,v])=>`<div class="tx-item"><div class="tx-dot ${v.tipo}">${v.tipo==='entrada'?'💰':'💸'}</div><div class="tx-info"><div class="tx-cat">${cat}</div></div><div class="tx-right"><div class="tx-amount ${v.tipo}">${fmt(v.total)}</div></div></div>`).join(''):'<div class="empty-state"><div class="empty-icon">📭</div><p>Sin datos este mes.</p></div>';
 }
 
-// ── EXPORT/IMPORT ──
-function exportarJSON(){
-  const blob=new Blob([JSON.stringify(getData(),null,2)],{type:'application/json'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=`finanzas_backup_${new Date().toISOString().slice(0,10)}.json`; a.click();
-  mostrarToast('📤 Archivo exportado');
-}
-function importarJSON(e){
-  const file=e.target.files[0]; if(!file)return;
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    try{
-      const imported=JSON.parse(ev.target.result);
-      if(!Array.isArray(imported))throw new Error();
-      saveData(mergeData(getData(),imported)); guardarEnDrive();
-      mostrarToast(`✅ ${imported.length} registros importados`); renderHome();
-    }catch{mostrarToast('❌ Archivo inválido');}
-  };
-  reader.readAsText(file); e.target.value='';
+// ══ SOPORTE ══
+function abrirFormSoporte(){
+  tipoSeleccionado=''; urgenciaSeleccionada='';
+  document.querySelectorAll('.tipo-btn').forEach(b=>b.classList.remove('selected'));
+  document.querySelectorAll('.urgencia-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('ticket-nombre').value=localStorage.getItem('ticket_nombre')||'';
+  document.getElementById('ticket-desc').value='';
+  ['home','historial','resumen','soporte','config'].forEach(s=>document.getElementById('screen-'+s).classList.remove('active'));
+  document.getElementById('screen-soporte-form').classList.add('active');
+  document.getElementById('main-nav').style.display='none';
+  window.scrollTo(0,0);
 }
 
-// ── TOAST ──
-function mostrarToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+function selTipo(btn,tipo){
+  document.querySelectorAll('.tipo-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected'); tipoSeleccionado=tipo;
+}
+function selUrgencia(btn,urgencia){
+  document.querySelectorAll('.urgencia-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected'); urgenciaSeleccionada=urgencia;
+}
+
+function abrirModalConfirmacion(){
+  const nombre=document.getElementById('ticket-nombre').value.trim();
+  const desc=document.getElementById('ticket-desc').value.trim();
+  if(!nombre){mostrarToast('⚠️ Ingresá tu nombre');return;}
+  if(!tipoSeleccionado){mostrarToast('⚠️ Seleccioná qué tiene problema');return;}
+  if(!urgenciaSeleccionada){mostrarToast('⚠️ Seleccioná la urgencia');return;}
+  document.getElementById('modal-detail-content').innerHTML=`
+    <div class="modal-detail-row"><span class="modal-detail-label">Cliente</span><span class="modal-detail-value">${nombre}</span></div>
+    <div class="modal-detail-row"><span class="modal-detail-label">Problema</span><span class="modal-detail-value">${tipoSeleccionado}</span></div>
+    <div class="modal-detail-row"><span class="modal-detail-label">Urgencia</span><span class="modal-detail-value">${urgenciaSeleccionada}</span></div>
+    ${desc?`<div class="modal-detail-row"><span class="modal-detail-label">Detalle</span><span class="modal-detail-value">${desc}</span></div>`:''}`;
+  document.getElementById('modal-soporte').classList.remove('hidden');
+}
+function cerrarModal(){ document.getElementById('modal-soporte').classList.add('hidden'); }
+
+async function confirmarTicket(){
+  cerrarModal();
+  const nombre=document.getElementById('ticket-nombre').value.trim();
+  const desc=document.getElementById('ticket-desc').value.trim();
+  localStorage.setItem('ticket_nombre',nombre);
+
+  const ticket={
+    id:Date.now().toString(),
+    nombre, tipo:tipoSeleccionado, urgencia:urgenciaSeleccionada,
+    descripcion:desc, fecha:new Date().toISOString(), estado:'pendiente'
+  };
+
+  const tickets=getTickets();
+  tickets.push(ticket);
+  saveTickets(tickets);
+  guardarEnDrive();
+
+  // Mensaje Telegram
+  const fecha=fmtFecha(ticket.fecha);
+  const hora=fmtHora(ticket.fecha);
+  const msg=`🆘 <b>NUEVO TICKET DE SOPORTE</b>\n\n👤 <b>Cliente:</b> ${nombre}\n🔧 <b>Problema:</b> ${tipoSeleccionado}\n${ticket.urgencia} <b>Urgencia</b>\n📅 <b>Fecha:</b> ${fecha} ${hora}${desc?`\n📝 <b>Detalle:</b> ${desc}`:''}\n\n<i>ID: ${ticket.id}</i>`;
+  await enviarTelegram(msg);
+
+  mostrarToast('✅ Soporte solicitado — te contactamos pronto');
+  setTimeout(()=>navegar('soporte'),800);
+}
+
+// ── RENDER TICKETS ──
+function renderTickets(){
+  const tickets=[...getTickets()].reverse();
+  const lista=document.getElementById('lista-tickets');
+  if(!tickets.length){
+    lista.innerHTML='<div class="empty-state"><div class="empty-icon">✅</div><p>No hay tickets anteriores.<br>Todo tranquilo por acá.</p></div>';
+    return;
+  }
+  lista.innerHTML=tickets.map(t=>`
+    <div class="ticket-item">
+      <div class="ticket-header">
+        <div class="ticket-tipo">${tipoIcon(t.tipo)} ${t.tipo}</div>
+        <span class="ticket-estado ${t.estado}">${t.estado==='resuelto'?'✅ Resuelto':'⏳ Pendiente'}</span>
+      </div>
+      <div class="ticket-meta">
+        <span>${t.urgencia}</span>
+        <span>${fmtFecha(t.fecha)} ${fmtHora(t.fecha)}</span>
+      </div>
+      ${t.descripcion?`<div class="ticket-nota">${t.descripcion}</div>`:''}
+      ${t.estado==='pendiente'?`<div class="ticket-actions"><button class="ticket-action-btn resolver" onclick="resolverTicket('${t.id}')">✅ Marcar resuelto</button></div>`:''}
+    </div>`).join('');
+}
+
+function tipoIcon(tipo){
+  const m={'Computadora / PC':'💻','Impresora':'🖨️','Internet / Red':'🌐','Teléfono / Celu':'📱','Otro':'❓'};
+  return m[tipo]||'🔧';
+}
+
+function resolverTicket(id){
+  const tickets=getTickets();
+  const t=tickets.find(t=>t.id===id);
+  if(t){ t.estado='resuelto'; saveTickets(tickets); guardarEnDrive(); renderTickets(); mostrarToast('✅ Ticket marcado como resuelto'); }
+}
+
+// ══ EXPORT / IMPORT ══
+function exportarJSON(){ const blob=new Blob([JSON.stringify({movs:getData(),tickets:getTickets()},null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`finanzas_backup_${new Date().toISOString().slice(0,10)}.json`; a.click(); mostrarToast('📤 Archivo exportado'); }
+function importarJSON(e){ const file=e.target.files[0]; if(!file)return; const reader=new FileReader(); reader.onload=ev=>{ try{ const d=JSON.parse(ev.target.result); if(d.movs){ saveData(mergeData(getData(),d.movs)); if(d.tickets)saveTickets(mergeTickets(getTickets(),d.tickets)); } else if(Array.isArray(d)){ saveData(mergeData(getData(),d)); } guardarEnDrive(); mostrarToast('✅ Datos importados'); renderHome(); }catch{mostrarToast('❌ Archivo inválido');} }; reader.readAsText(file); e.target.value=''; }
+
+// ══ TOAST ══
+function mostrarToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
 </script>
 </body>
 </html>
